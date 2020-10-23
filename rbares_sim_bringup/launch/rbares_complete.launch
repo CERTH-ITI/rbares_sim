@@ -7,9 +7,9 @@
   <arg name="use_gpu_for_simulation" default="$(optenv SIMULATION_USE_GPU true)"/>
 
   <!-- What to execute -->
-  <arg name="run_simulation" default="true"/>
+  <arg name="run_simulation" default="false"/>
   <arg name="run_robot" default="true"/>
-  <arg name="run_rviz" default="true"/>
+  <arg name="run_rviz" default="false"/>
 
   <!-- Simulation configuration -->
   <arg name="world" default="worlds/rbares_epal.world" /> <!-- relative path to config_package -->
@@ -18,7 +18,9 @@
   <arg name="paused" default="false"/>
   <arg name="headless" default="false"/>
   <arg name="gui" default="true"/>
-
+	<arg name="launch_certh" default="false"/>
+	<arg name="certh_suffix" default="_certh"/>
+	
   <!-- Robot configuration -->
   <arg name="robot_id" default="$(optenv ROBOT_ID robot)"/>
   <arg name="prefix" default="$(arg robot_id)_"/>
@@ -27,6 +29,7 @@
   <arg name="x_init_pose" default="0"/>
   <arg name="y_init_pose" default="0"/>
   <arg name="z_init_pose" default="0"/>
+  <arg name="yaw_init_pose" default="0"/>
   <arg name="launch_base_hw_sim" default="false"/>
   <arg name="launch_battery_estimator" default="false"/>
 
@@ -57,11 +60,27 @@
     <arg name="x_init_pose" value="$(arg x_init_pose)"/>
     <arg name="y_init_pose" value="$(arg y_init_pose)"/>
     <arg name="z_init_pose" value="$(arg z_init_pose)"/>
+		<arg name="yaw_init_pose" value="$(arg yaw_init_pose)"/>
     <arg name="launch_base_hw_sim" value="$(arg launch_base_hw_sim)"/>
     <arg name="launch_battery_estimator" value="$(arg launch_battery_estimator)"/>
     <arg name="use_gpu_for_simulation" default="$(arg use_gpu_for_simulation)" />
   </include>
-
+	
+	<!-- launch localization -->
+  <include file="$(find rbares_localization)/launch/amcl.launch">
+    <arg name="robot_id" value="$(arg robot_id)"/>
+    <arg name="x_init_pose" value="$(arg x_init_pose)"/>
+    <arg name="y_init_pose" value="$(arg y_init_pose)"/>
+    <arg name="z_init_pose" value="$(arg z_init_pose)"/>
+    <arg name="yaw_init_pose" value="$(arg yaw_init_pose)"/>
+  </include>
+	
+	<!-- launch navigation -->
+	<include file="$(find rbares_navigation)/launch/move_base.launch">
+		<arg name="robot_id" value="$(arg robot_id)"/>
+		<arg name="suffix" value="$(eval certh_suffix * launch_certh)"/>
+	</include>
+	
   <!-- launch rviz -->
   <include if="$(arg run_rviz)" file="$(find rbares_sim_bringup)/launch/run_rviz.launch">
     <arg name="simulation_package" value="$(arg simulation_package)"/>
